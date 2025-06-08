@@ -54,7 +54,8 @@ export let StartMenu: React.FC<StartMenuProps> = ({ onGameStart }) => {
                         <div className="flex gap-2 mb-4">
                             { colors.map(color => (
                                 <button key={ color } onClick={ () => handleColorSelect(playerIndex, color) } className={`w-12 h-12 border-2 
-                                 
+                                    ${ useColor[playerIndex] === color ? "border-black" : 'border-gray-300' } 
+                                    ${ useColor[-playerIndex + 1] === color ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
                                 `}
                                     style={{ backgroundColor: color }} disabled={ useColor[-playerIndex + 1] === color }
                                 />
