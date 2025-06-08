@@ -71,14 +71,14 @@ export function updatePlayer(players: Player[], keys: Record<string, boolean>,
 }
 
 export function getWinner(players: Player[]): string {
-    let winner =  players[0].color +" Wins!";
+
     if (players.length > 1) {
         if (players[0].y < players[1].y) {
-            winner = "Green Wins";
-        } else if (players[0].y == players[1].y) {
-            winner = "Tie!"
+            return (players[0].color +" Wins!");
+        } else if (players[0].y > players[1].y) {
+            return (players[1].color +" Wins!");
         }
     }
 
-    return winner;
+    return "Tie!";
 }

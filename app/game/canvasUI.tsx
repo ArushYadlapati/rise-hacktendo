@@ -16,7 +16,7 @@ export default function GameCanvas() {
             y: gameHeight - 500,
             vy: 0,
             touchingPlatform: false,
-            color: "green",
+            color: "orange",
             left: "a",
             right: "d",
             up: "w"
@@ -94,8 +94,7 @@ export default function GameCanvas() {
                         context.fillStyle = "red";
                         context.font = "48px Arial";
                         context.textAlign = "center";
-                        // context.fillText(getWinner(players), gameWidth / 2, gameHeight / 2);;
-                        context.fillText("Game Over", gameWidth / 2, gameHeight / 2);
+                        context.fillText(getWinner(players), gameWidth / 2, gameHeight / 2);
                         context.font = "24px Arial";
                         context.fillText("Refresh to play again", gameWidth / 2, gameHeight / 2 + 50);
                     }
