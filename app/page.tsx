@@ -1,5 +1,4 @@
-import GameCanvas from "@/app/game/canvasUI";
-import StartMenu from "@/app/game/startMenu";
+import GameCanvas from "@/app/ui/canvasUI";
 
 export default function Game() {
     return (

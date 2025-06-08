@@ -1,4 +1,4 @@
-import { gameWidth, gameHeight } from "@/app/game/canvasUI";
+import { gameWidth, gameHeight } from "@/app/ui/canvasUI";
 
 const platformSpacing = 67.5;
 

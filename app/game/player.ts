@@ -1,3 +1,5 @@
+import {capitalize} from "@/app/game/util";
+
 export interface Player {
     x: number;
     y: number;
@@ -78,9 +80,9 @@ export function getWinner(players: Player[]): string {
 
     if (players.length > 1) {
         if (players[0].y < players[1].y) {
-            return (players[0].color +" Wins!");
+            return (capitalize(players[0].color) +" Wins!");
         } else if (players[0].y > players[1].y) {
-            return (players[1].color +" Wins!");
+            return (capitalize(players[1].color) +" Wins!");
         }
     }
 
