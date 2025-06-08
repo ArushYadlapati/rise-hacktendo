@@ -1,12 +1,20 @@
 import { gameWidth, gameHeight } from "@/app/game/canvasUI";
 
 const platformSpacing = 60;
-export const riseSpeed = 0.0;
+
+let riseSpeed = 0;
+let startSpeed = 0.25;
 
 export interface Platform {
     x : number;
     y : number;
     width : number;
+}
+
+export function startGame() {
+    if (riseSpeed == 0) {
+        riseSpeed = startSpeed;
+    }
 }
 
 export function createPlatforms(num : number) : Platform[] {
@@ -41,17 +49,6 @@ export function movePlatforms(platforms: Platform[]) : Platform[] {
     newPlatforms = newPlatforms.filter((platform) => (
         platform.y < gameHeight + 20
     ));
-
-    if (newPlatforms[0].y > gameHeight) {
-        /*
-        newPlatforms.shift();
-        newPlatforms.push({
-            x: Math.random() * (gameWidth - 200),
-            y: (newPlatforms[newPlatforms.length - 1].y - platformSpacing),
-            width: 100 + Math.random() * 100,
-        )};
-         */
-    }
 
     while (newPlatforms.length < 20) {
         const highestPlatform = newPlatforms.slice(1).reduce((highest, platform) => {

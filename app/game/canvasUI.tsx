@@ -3,7 +3,6 @@
 import { createPlatforms, Platform, movePlatforms } from "./platforms";
 import { useEffect, useRef, useState } from "react";
 import {getWinner, Player, updatePlayer} from "./player";
-import Game from "@/app/page";
 
 export const gameWidth = 800;
 export const gameHeight = 600;

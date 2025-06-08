@@ -39,7 +39,7 @@ export function updatePlayer(players: Player[], keys: Record<string, boolean>,
             const playerBottom = newY + 20;
 
             const platformLeft = platform.x;
-            const platformRight = platform.x + 20;
+            const platformRight = platform.x + platform.width;
             const platformTop = platform.y;
             const platformBottom = platform.y + 20;
 
@@ -80,5 +80,5 @@ export function getWinner(players: Player[]): string {
         }
     }
 
-    return "Tie!";
+    return "Tie! Great!";
 }
