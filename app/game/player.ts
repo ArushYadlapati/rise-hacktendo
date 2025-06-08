@@ -41,16 +41,20 @@ export function updatePlayer(players: Player[], keys: Record<string, boolean>,
             const platformLeft = platform.x;
             const platformRight = platform.x + platform.width;
             const platformTop = platform.y;
-            const platformBottom = platform.y + 20;
+            const platformBottom = platform.y + 5;
 
-            if ((playerRight > platformLeft && playerLeft < platformRight)
-                && (playerBottom >= platformTop && playerBottom <= platformBottom + 5
-                    && vy > 0)
-                ) {
+            const xO = (playerRight > platformLeft && playerLeft < platformRight);
+            const yO = (playerBottom >= platformTop && playerTop < platformTop && vy > 0);
+            const zO = (playerTop <= platformBottom && playerBottom > platformBottom && vy < 0);
 
+            if (xO && yO) {
                 vy = 0;
                 newY = platformTop - 20;
                 touchingPlatform = true;
+                break;
+            } else if (xO && zO) {
+                vy = 0;
+                newY = platformBottom;
                 break;
             }
         }

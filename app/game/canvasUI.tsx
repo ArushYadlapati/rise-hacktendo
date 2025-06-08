@@ -1,8 +1,9 @@
 "use client";
 
-import { createPlatforms, Platform, movePlatforms } from "./platforms";
+import {createPlatforms, Platform, movePlatforms, startGame} from "./platforms";
 import { useEffect, useRef, useState } from "react";
 import {getWinner, Player, updatePlayer} from "./player";
+import StartMenu from "@/app/game/startMenu";
 
 export const gameWidth = 800;
 export const gameHeight = 600;
@@ -12,7 +13,7 @@ export default function GameCanvas() {
     const [players, setPlayers] = useState<Player[]>([
         {
             x: 100,
-            y: gameHeight - 500,
+            y: gameHeight - 50,
             vy: 0,
             touchingPlatform: false,
             color: "orange",
@@ -22,7 +23,7 @@ export default function GameCanvas() {
         },
         {
             x: 600,
-            y: gameHeight - 500,
+            y: gameHeight - 50,
             vy: 0,
             touchingPlatform: false,
             color: "yellow",
@@ -34,6 +35,7 @@ export default function GameCanvas() {
 
     const [platforms, setPlatforms] = useState<Platform[]>(createPlatforms(15));
     const [gameOver, setGameOver] = useState(false);
+    const [gameStart, setGameStart] = useState(false);
     const keys = useRef<Record<string, boolean>>({});
     const animationRef = useRef<number | null>(null);
 
@@ -57,25 +59,19 @@ export default function GameCanvas() {
 
     useEffect(() => {
         const gameLoop = () => {
-            if (!gameOver) {
-                const updatedPlayers = updatePlayer(players, keys.current, platforms);
-
-                const playersAlive = updatedPlayers.filter(player => player.y < gameHeight + 50);
-                if (playersAlive.length < updatedPlayers.length) {
-                    setGameOver(true);
-                    // setGameOver(false);
-                } else {
-                    setPlayers(updatedPlayers);
-
-                    const updatedPlatforms = movePlatforms(platforms);
-                    setPlatforms(updatedPlatforms);
-                }
-            }
-
             const canvas = canvasRef.current;
             if (canvas) {
                 const context = canvas.getContext("2d");
                 if (context) {
+                    if (gameStart) {
+                        context.fillStyle = "red";
+                        context.font = "48px Arial";
+                        context.textAlign = "center";
+                        context.fillText("RISE: A HACKTENDO GAME", gameWidth / 2, gameHeight / 2 - 50);
+                        context.font = "24px Arial";
+                        context.fillText("Press spacebar to start", gameWidth / 2, gameHeight / 2 + 50);
+                    }
+
                     context.fillStyle = "#87CEEB";
                     context.fillRect(0, 0, gameWidth, gameHeight);
 
@@ -95,8 +91,53 @@ export default function GameCanvas() {
                         context.textAlign = "center";
                         context.fillText(getWinner(players), gameWidth / 2, gameHeight / 2);
                         context.font = "24px Arial";
-                        context.fillText("Refresh to play again", gameWidth / 2, gameHeight / 2 + 50);
+                        context.fillText("Press spacebar to play again", gameWidth / 2, gameHeight / 2 + 50);
+                        if (keys.current[" "]) {
+                            setGameOver(false);
+                            setPlayers([
+                                {
+                                    x: 100,
+                                    y: gameHeight - 50,
+                                    vy: 0,
+                                    touchingPlatform: false,
+                                    color: "orange",
+                                    left: "a",
+                                    right: "d",
+                                    up: "w"
+                                },
+                                {
+                                    x: 600,
+                                    y: gameHeight - 50,
+                                    vy: 0,
+                                    touchingPlatform: false,
+                                    color: "yellow",
+                                    left: "ArrowLeft",
+                                    right: "ArrowRight",
+                                    up: "ArrowUp"
+                                }
+                            ]);
+                            setPlatforms(createPlatforms(15));
+                        }
                     }
+                }
+            }
+
+            if (!gameOver) {
+                const updatedPlayers = updatePlayer(players, keys.current, platforms);
+
+                const playersAlive = updatedPlayers.filter(player => player.y < gameHeight + 50);
+
+                if (!gameStart) {
+                    setGameStart(true);
+                }
+                if (playersAlive.length < updatedPlayers.length) {
+                    setGameOver(true);
+                    // setGameOver(false);
+                } else {
+                    setPlayers(updatedPlayers);
+
+                    const updatedPlatforms = movePlatforms(platforms);
+                    setPlatforms(updatedPlatforms);
                 }
             }
 
@@ -104,6 +145,7 @@ export default function GameCanvas() {
         };
 
         animationRef.current = requestAnimationFrame(gameLoop);
+
 
         return () => {
             if (animationRef.current) {

@@ -1,6 +1,6 @@
 import { gameWidth, gameHeight } from "@/app/game/canvasUI";
 
-const platformSpacing = 60;
+const platformSpacing = 67.5;
 
 let riseSpeed = 0;
 let startSpeed = 0.25;
