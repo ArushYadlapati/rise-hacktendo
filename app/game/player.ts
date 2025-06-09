@@ -11,9 +11,9 @@ export interface Player {
     up: string;
 }
 
-const speed: number = 5.0;
+const speed: number = 6.0;
 const gravity : number = 1.0;
-const velocity: number = -14;
+const velocity: number = -16;
 
 export function updatePlayer(players: Player[], keys: Record<string, boolean>,
                              platforms: { x: number; y: number; width: number;}[]): Player[] {

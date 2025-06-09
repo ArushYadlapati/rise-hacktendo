@@ -1,6 +1,6 @@
 "use client";
 
-import {createPlatforms, Platform, movePlatforms, startGame, increaseSpeed} from "../game/platforms";
+import {createPlatforms, Platform, movePlatforms, startGame, increaseSpeed, setSpeed} from "../game/platforms";
 import { useEffect, useRef, useState } from "react";
 import {getWinner, Player, updatePlayer} from "../game/player";
 import {StartMenu} from "@/app/ui/startMenu";
@@ -8,6 +8,7 @@ import {formatTime} from "@/app/game/util";
 
 export const gameWidth = 800;
 export const gameHeight = 600;
+export let gameLevel = 1;
 
 export default function GameCanvas() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -116,12 +117,18 @@ export default function GameCanvas() {
         }
 
         const gameLoop = () => {
-            increaseSpeed();
+
 
             // Update timer
+            let currentTime;
             if (!gameOver) {
-                const currentTime = Date.now() - gameStartTime.current;
+                currentTime = Date.now() - gameStartTime.current;
                 setGameTime(currentTime);
+
+                if (currentTime > 10000 * gameLevel) {
+                    increaseSpeed();
+                    gameLevel++;
+                }
             }
 
             const canvas = canvasRef.current;
@@ -155,6 +162,9 @@ export default function GameCanvas() {
 
 
                     if (gameOver) {
+                        gameLevel = 1;
+                        setSpeed(0);
+
                         context.fillStyle = "rgba(0, 0, 0, 0.7)";
                         context.fillRect(0, 0, gameWidth, gameHeight);
 

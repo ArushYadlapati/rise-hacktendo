@@ -1,8 +1,8 @@
 import { gameWidth, gameHeight } from "@/app/ui/canvasUI";
 
-const platformSpacing = 67.5;
+const platformSpacing = 50;
 
-let riseSpeed = 0;
+export let riseSpeed = 0;
 let startSpeed = 0.25;
 
 export interface Platform {
@@ -18,7 +18,11 @@ export function startGame() {
 }
 
 export function increaseSpeed() {
-    // riseSpeed += 0.05;
+    riseSpeed += 0.125;
+}
+
+export function setSpeed(speed: number) {
+    riseSpeed = speed;
 }
 
 export function createPlatforms(num : number) : Platform[] {
