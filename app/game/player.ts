@@ -13,8 +13,8 @@ export interface Player {
     spikeSlow?: number;
 }
 
-const speed = 6.0;
-const gravity = 1;
+const speed = 7.0;
+const gravity = 1.0;
 const yVelocity = -16;
 const slowFactor = 0.4;
 const spikeY = 12;
