@@ -16,7 +16,7 @@ export interface Player {
 const speed = 5.0;
 const gravity = 1.0;
 const yVelocity = -18;
-const slowFactor = 0.2;
+const slowFactor = 0.5;
 const spikeY = 12;
 const spikeSlow = 2000;
 

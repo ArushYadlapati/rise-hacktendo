@@ -1,6 +1,6 @@
 "use client";
 
-import { createPlatforms, increaseSpeed, movePlatforms, Platform, riseSpeed, setSpeed, startGame, updateCannonsAndProjectiles, getProjectiles, checkProjectileCollision } from "../game/platforms";
+import { createPlatforms, increaseSpeed, movePlatforms, Platform, riseSpeed, setSpeed, startGame, updateCannon, getProjectiles, checkProjectile } from "../game/platforms";
 import { useEffect, useRef, useState } from "react";
 import { getWinner, Player, updatePlayer } from "../game/player";
 import { StartMenu } from "@/app/ui/startMenu";
@@ -59,7 +59,7 @@ export default function GameCanvas() {
 
         ctx.fillStyle = topC;
         ctx.fillRect(platform.x, platform.y, platform.width, 4);
-        
+
         if (platform.spikes?.length) {
             ctx.fillStyle = "#DC143C";
             ctx.strokeStyle = "#8B0000";
@@ -204,7 +204,7 @@ export default function GameCanvas() {
                     gameLevel += 1;
                 }
 
-                updateCannonsAndProjectiles(platforms, Date.now());
+                updateCannon(platforms, Date.now());
 
                 console.log(riseSpeed);
             }
@@ -227,7 +227,7 @@ export default function GameCanvas() {
                         const alive = updatedPlayers.filter((pl) => pl.y < gameHeight + 50);
 
                         projectileHit = updatedPlayers.some(player =>
-                            checkProjectileCollision(player.x, player.y, 20, 20)
+                            checkProjectile(player.x, player.y, 20, 20)
                         );
 
                         if (projectileHit) {
