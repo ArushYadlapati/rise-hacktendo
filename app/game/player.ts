@@ -11,9 +11,9 @@ export interface Player {
     up: string;
 }
 
-const speed: number = 5;
-const gravity : number = 0.5;
-const velocity: number = -10;
+const speed: number = 5.0;
+const gravity : number = 1.0;
+const velocity: number = -14;
 
 export function updatePlayer(players: Player[], keys: Record<string, boolean>,
                              platforms: { x: number; y: number; width: number;}[]): Player[] {
@@ -86,5 +86,5 @@ export function getWinner(players: Player[]): string {
         }
     }
 
-    return "Tie! Great!";
+    return "Tie Game!";
 }

@@ -17,6 +17,10 @@ export function startGame() {
     }
 }
 
+export function increaseSpeed() {
+    // riseSpeed += 0.05;
+}
+
 export function createPlatforms(num : number) : Platform[] {
     const platforms : Platform[] = [];
 

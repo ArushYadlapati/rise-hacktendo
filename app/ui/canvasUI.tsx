@@ -1,9 +1,10 @@
 "use client";
 
-import {createPlatforms, Platform, movePlatforms, startGame} from "../game/platforms";
+import {createPlatforms, Platform, movePlatforms, startGame, increaseSpeed} from "../game/platforms";
 import { useEffect, useRef, useState } from "react";
 import {getWinner, Player, updatePlayer} from "../game/player";
 import {StartMenu} from "@/app/ui/startMenu";
+import {formatTime} from "@/app/game/util";
 
 export const gameWidth = 800;
 export const gameHeight = 600;
@@ -11,6 +12,8 @@ export const gameHeight = 600;
 export default function GameCanvas() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [showStartMenu, setShowStartMenu] = useState(true);
+    const [gameTime, setGameTime] = useState(0);
+    const gameStartTime = useRef<number>(0);
     const [players, setPlayers] = useState<Player[]>([
         {
             x: 100,
@@ -34,33 +37,31 @@ export default function GameCanvas() {
         }
     ]);
 
-    const [platforms, setPlatforms] = useState<Platform[]>(createPlatforms(15));
+    const [platforms, setPlatforms] = useState<Platform[]>(createPlatforms(30));
     const [gameOver, setGameOver] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
     const keys = useRef<Record<string, boolean>>({});
     const animationRef = useRef<number | null>(null);
 
-    // Handle game start from menu
     const handleGameStart = (selectedColors: string[]) => {
-        // Update player colors with selected colors
         setPlayers(prevPlayers => [
             { ...prevPlayers[0], color: selectedColors[0] },
             { ...prevPlayers[1], color: selectedColors[1] }
         ]);
 
-        // Hide start menu and start the game
         setShowStartMenu(false);
         setGameStarted(true);
+        gameStartTime.current = Date.now();
+        setGameTime(0);
 
-        // Call the startGame function from platforms.ts
         startGame();
     };
 
-    // Handle restart game
     const restartGame = () => {
         setGameOver(false);
         setGameStarted(false);
         setShowStartMenu(true);
+        setGameTime(0);
         setPlayers([
             {
                 x: 100,
@@ -90,7 +91,6 @@ export default function GameCanvas() {
         const handleKeyDown = (event: KeyboardEvent) => {
             keys.current[event.key] = true;
 
-            // Handle spacebar for game over restart
             if (event.key === " " && gameOver) {
                 event.preventDefault();
                 restartGame();
@@ -111,33 +111,49 @@ export default function GameCanvas() {
     }, [gameOver]);
 
     useEffect(() => {
-        // Only start game loop if game has started and start menu is not showing
         if (!gameStarted || showStartMenu) {
             return;
         }
 
         const gameLoop = () => {
+            increaseSpeed();
+
+            // Update timer
+            if (!gameOver) {
+                const currentTime = Date.now() - gameStartTime.current;
+                setGameTime(currentTime);
+            }
+
             const canvas = canvasRef.current;
             if (canvas) {
                 const context = canvas.getContext("2d");
                 if (context) {
-                    // Clear canvas
                     context.fillStyle = "#87CEEB";
                     context.fillRect(0, 0, gameWidth, gameHeight);
 
-                    // Draw platforms
                     context.fillStyle = "black";
                     platforms.forEach(platform => {
                         context.fillRect(platform.x, platform.y, platform.width, 5);
                     });
 
-                    // Draw players
                     players.forEach(player => {
                         context.fillStyle = player.color;
                         context.fillRect(player.x, player.y, 20, 20);
                     });
 
-                    // Draw game over screen
+                    const timerText = formatTime(gameTime);
+                    context.font = "24px Arial";
+                    context.textAlign = "right";
+                    const textWidth = context.measureText(timerText).width;
+                    const padding = 10;
+
+                    context.fillStyle = "red";
+                    context.fillRect(gameWidth - textWidth - padding * 2 - 10, 10, textWidth + padding * 2, 34);
+
+                    context.fillStyle = "white";
+                    context.fillText(timerText, gameWidth - padding - 10, 35);
+
+
                     if (gameOver) {
                         context.fillStyle = "rgba(0, 0, 0, 0.7)";
                         context.fillRect(0, 0, gameWidth, gameHeight);
@@ -147,7 +163,8 @@ export default function GameCanvas() {
                         context.textAlign = "center";
                         context.fillText(getWinner(players), gameWidth / 2, gameHeight / 2);
                         context.font = "24px Arial";
-                        context.fillText("Press spacebar to play again", gameWidth / 2, gameHeight / 2 + 50);
+                        context.fillText("Time Lasted: " + timerText, gameWidth / 2, gameHeight / 2 + 50);
+                        context.fillText("Press spacebar to play again", gameWidth / 2, gameHeight / 2 + 100);
                     }
                 }
             }
@@ -175,26 +192,20 @@ export default function GameCanvas() {
                 cancelAnimationFrame(animationRef.current);
             }
         };
-    }, [players, platforms, gameOver, gameStarted, showStartMenu]);
+    }, [players, platforms, gameOver, gameStarted, showStartMenu, gameTime]);
 
     return (
         <div
             className="absolute bg-black border-2 border-gray-400 flex flex-col items-center justify-center"
-            style={{
-                width: '800px',
-                height: '600px',
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-50%, -50%)'
-            }}
+            style={{ width: '800px', height: '600px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
         >
-            {showStartMenu && (
-                <StartMenu onGameStart={handleGameStart} />
-            )}
+            { showStartMenu && (
+                <StartMenu onGameStart={ handleGameStart } />
+            ) }
             <canvas
-                ref={canvasRef}
-                width={gameWidth}
-                height={gameHeight}
+                ref={ canvasRef }
+                width={ gameWidth }
+                height={ gameHeight }
                 className="border-2 border-gray-400 bg-sky-200"
             />
         </div>
