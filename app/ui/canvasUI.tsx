@@ -1,6 +1,6 @@
 "use client";
 
-import { createPlatforms, increaseSpeed, movePlatforms, Platform, riseSpeed, setSpeed, startGame } from "../game/platforms";
+import { createPlatforms, increaseSpeed, movePlatforms, Platform, riseSpeed, setSpeed, startGame, updateCannonsAndProjectiles, getProjectiles, checkProjectileCollision } from "../game/platforms";
 import { useEffect, useRef, useState } from "react";
 import { getWinner, Player, updatePlayer } from "../game/player";
 import { StartMenu } from "@/app/ui/startMenu";
@@ -46,17 +46,11 @@ export default function GameCanvas() {
     const keys = useRef<Record<string, boolean>>({});
     const animationRef = useRef<number | null>(null);
 
-    // ────────────────────────────────────────────────────────────────────────────
-    // Canvas drawing helpers
-    // ────────────────────────────────────────────────────────────────────────────
-
     const drawPlatform = (
         ctx: CanvasRenderingContext2D,
         platform: Platform,
     ) => {
         const platformHeight = 20;
-
-
 
         const topC = "#2e8b22";
 
@@ -65,7 +59,7 @@ export default function GameCanvas() {
 
         ctx.fillStyle = topC;
         ctx.fillRect(platform.x, platform.y, platform.width, 4);
-
+        
         if (platform.spikes?.length) {
             ctx.fillStyle = "#DC143C";
             ctx.strokeStyle = "#8B0000";
@@ -85,6 +79,49 @@ export default function GameCanvas() {
                 ctx.stroke();
             });
         }
+
+        if (platform.cannons?.length) {
+            platform.cannons.forEach((cannon) => {
+                const cannonX = platform.x + cannon.x;
+                const cannonY = cannon.y;
+
+                ctx.fillStyle = "#4A4A4A";
+                ctx.strokeStyle = "#2A2A2A";
+                ctx.lineWidth = 1;
+                ctx.fillRect(cannonX + 2, cannonY + 4, 6, 4);
+                ctx.strokeRect(cannonX + 2, cannonY + 4, 6, 4);
+
+                ctx.fillStyle = "#606060";
+                ctx.beginPath();
+                ctx.arc(cannonX + 5, cannonY + 2, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#2A2A2A";
+                ctx.fillRect(cannonX + 4, cannonY, 2, 4);
+            });
+        }
+    };
+
+    const drawProjectiles = (ctx: CanvasRenderingContext2D) => {
+        const projectiles = getProjectiles();
+
+        projectiles.forEach((projectile) => {
+            ctx.fillStyle = "#FF8C00";
+            ctx.strokeStyle = "#FF4500";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(projectile.x, projectile.y, projectile.radius - 1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "#FFD700";
+            ctx.globalAlpha = 0.8;
+            ctx.beginPath();
+            ctx.arc(projectile.x - 1, projectile.y - 1, 1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        });
     };
 
     const handleGameStart = (selectedColors: string[]) => {
@@ -153,7 +190,6 @@ export default function GameCanvas() {
         };
     }, [gameOver]);
 
-
     useEffect(() => {
         if (!gameStarted || showStartMenu) {
             return;
@@ -168,6 +204,8 @@ export default function GameCanvas() {
                     gameLevel += 1;
                 }
 
+                updateCannonsAndProjectiles(platforms, Date.now());
+
                 console.log(riseSpeed);
             }
 
@@ -179,6 +217,32 @@ export default function GameCanvas() {
                     ctx.fillRect(0, 0, gameWidth, gameHeight);
 
                     platforms.forEach((p) => drawPlatform(ctx, p));
+
+                    drawProjectiles(ctx);
+
+                    let projectileHit = false;
+
+                    if (!gameOver) {
+                        const updatedPlayers = updatePlayer(players, keys.current, platforms);
+                        const alive = updatedPlayers.filter((pl) => pl.y < gameHeight + 50);
+
+                        projectileHit = updatedPlayers.some(player =>
+                            checkProjectileCollision(player.x, player.y, 20, 20)
+                        );
+
+                        if (projectileHit) {
+                            updatedPlayers.forEach(player => {
+                                player.spikeSlow = Date.now() + 2000;
+                            });
+                        }
+
+                        if (alive.length < updatedPlayers.length) {
+                            setGameOver(true);
+                        } else {
+                            setPlayers(updatedPlayers);
+                            setPlatforms(movePlatforms(platforms));
+                        }
+                    }
 
                     const now = Date.now();
                     players.forEach((pl) => {
@@ -221,18 +285,6 @@ export default function GameCanvas() {
                         ctx.fillText(`Time Lasted: ${timeTxt}`, gameWidth / 2, gameHeight / 2 + 50);
                         ctx.fillText("Press spacebar to play again", gameWidth / 2, gameHeight / 2 + 100);
                     }
-                }
-            }
-
-            if (!gameOver) {
-                const updatedPlayers = updatePlayer(players, keys.current, platforms);
-                const alive = updatedPlayers.filter((pl) => pl.y < gameHeight + 50);
-
-                if (alive.length < updatedPlayers.length) {
-                    setGameOver(true);
-                } else {
-                    setPlayers(updatedPlayers);
-                    setPlatforms(movePlatforms(platforms));
                 }
             }
 
