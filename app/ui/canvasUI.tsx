@@ -131,7 +131,7 @@ export default function GameCanvas() {
             },
         ]);
 
-        setPlatforms(createPlatforms(15));
+        setPlatforms(createPlatforms(30));
     };
 
     useEffect(() => {

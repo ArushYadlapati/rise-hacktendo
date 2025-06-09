@@ -34,7 +34,7 @@ export function setSpeed(speed: number) {
 function createSpikes(platformWidth: number): Spike[] {
     const spikes: Spike[] = [];
     const spikeWidth = 8;
-    const maxSpikes = Math.floor(platformWidth / 5);
+    const maxSpikes = Math.floor(platformWidth / 10);
     const numSpikes = Math.floor(Math.random() * maxSpikes) + 1;
 
     for (let i = 0; i < numSpikes; i++) {
@@ -58,7 +58,7 @@ export function createPlatforms(num: number): Platform[] {
     });
 
     for (let i = 1; i < num; i++) {
-        let numPlatform = (Math.floor(Math.random() * 4) + 1);
+        let numPlatform = (Math.floor(Math.random() * 2) + 3);
 
         for (let j = 0; j < numPlatform; j++) {
             const width: number = (Math.random() * 120) + 80;
