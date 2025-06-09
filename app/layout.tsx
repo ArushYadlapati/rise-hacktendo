@@ -22,9 +22,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return(
     <html lang="en" suppressHydrationWarning ={ false }>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${ geistSans.variable } ${ geistMono.variable } antialiased` }
       >
-        {children}
+         {children }
       </body>
     </html>
   );

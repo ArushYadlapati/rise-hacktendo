@@ -1,10 +1,10 @@
 "use client";
 
-import {createPlatforms, Platform, movePlatforms, startGame, increaseSpeed, setSpeed} from "../game/platforms";
+import { createPlatforms, increaseSpeed, movePlatforms, Platform, riseSpeed, setSpeed, startGame } from "../game/platforms";
 import { useEffect, useRef, useState } from "react";
-import {getWinner, Player, updatePlayer} from "../game/player";
-import {StartMenu} from "@/app/ui/startMenu";
-import {formatTime} from "@/app/game/util";
+import { getWinner, Player, updatePlayer } from "../game/player";
+import { StartMenu } from "@/app/ui/startMenu";
+import { formatTime } from "@/app/game/util";
 
 export const gameWidth = 800;
 export const gameHeight = 600;
@@ -24,7 +24,8 @@ export default function GameCanvas() {
             color: "orange",
             left: "a",
             right: "d",
-            up: "w"
+            up: "w",
+            spikeSlow: undefined,
         },
         {
             x: 600,
@@ -34,20 +35,62 @@ export default function GameCanvas() {
             color: "yellow",
             left: "ArrowLeft",
             right: "ArrowRight",
-            up: "ArrowUp"
-        }
+            up: "ArrowUp",
+            spikeSlow: undefined,
+        },
     ]);
 
-    const [platforms, setPlatforms] = useState<Platform[]>(createPlatforms(30));
+    const [platforms, setPlatforms] = useState<Platform[]>(createPlatforms(45));
     const [gameOver, setGameOver] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
     const keys = useRef<Record<string, boolean>>({});
     const animationRef = useRef<number | null>(null);
 
+    // ────────────────────────────────────────────────────────────────────────────
+    // Canvas drawing helpers
+    // ────────────────────────────────────────────────────────────────────────────
+
+    const drawPlatform = (
+        ctx: CanvasRenderingContext2D,
+        platform: Platform,
+    ) => {
+        const platformHeight = 20;
+
+
+
+        const topC = "#2e8b22";
+
+        ctx.fillStyle = "#7c4a02";
+        ctx.fillRect(platform.x, platform.y + 4, platform.width, platformHeight - 4);
+
+        ctx.fillStyle = topC;
+        ctx.fillRect(platform.x, platform.y, platform.width, 4);
+
+        if (platform.spikes?.length) {
+            ctx.fillStyle = "#DC143C";
+            ctx.strokeStyle = "#8B0000";
+            ctx.lineWidth = 1;
+
+            platform.spikes.forEach((spike) => {
+                const sx = platform.x + spike.x;
+                const sy = platform.y;
+                const h = 12;
+
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(sx + spike.width / 2, sy - h);
+                ctx.lineTo(sx + spike.width, sy);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            });
+        }
+    };
+
     const handleGameStart = (selectedColors: string[]) => {
-        setPlayers(prevPlayers => [
-            { ...prevPlayers[0], color: selectedColors[0] },
-            { ...prevPlayers[1], color: selectedColors[1] }
+        setPlayers((prev) => [
+            { ...prev[0], color: selectedColors[0] },
+            { ...prev[1], color: selectedColors[1] },
         ]);
 
         setShowStartMenu(false);
@@ -72,7 +115,8 @@ export default function GameCanvas() {
                 color: "orange",
                 left: "a",
                 right: "d",
-                up: "w"
+                up: "w",
+                spikeSlow: undefined,
             },
             {
                 x: 600,
@@ -82,141 +126,136 @@ export default function GameCanvas() {
                 color: "yellow",
                 left: "ArrowLeft",
                 right: "ArrowRight",
-                up: "ArrowUp"
-            }
+                up: "ArrowUp",
+                spikeSlow: undefined,
+            },
         ]);
+
         setPlatforms(createPlatforms(15));
     };
 
     useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
+        const down = (event: KeyboardEvent) => {
             keys.current[event.key] = true;
-
             if (event.key === " " && gameOver) {
                 event.preventDefault();
                 restartGame();
             }
         };
-
-        const handleKeyUp = (event: KeyboardEvent) => {
-            keys.current[event.key] = false;
+        const up = (e: KeyboardEvent) => {
+            keys.current[e.key] = false;
         };
-
-        window.addEventListener("keydown", handleKeyDown);
-        window.addEventListener("keyup", handleKeyUp);
-
+        window.addEventListener("keydown", down);
+        window.addEventListener("keyup", up);
         return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-            window.removeEventListener("keyup", handleKeyUp);
+            window.removeEventListener("keydown", down);
+            window.removeEventListener("keyup", up);
         };
     }, [gameOver]);
+
 
     useEffect(() => {
         if (!gameStarted || showStartMenu) {
             return;
         }
 
-        const gameLoop = () => {
-
-
-            // Update timer
-            let currentTime;
+        const loop = () => {
             if (!gameOver) {
-                currentTime = Date.now() - gameStartTime.current;
-                setGameTime(currentTime);
-
-                if (currentTime > 10000 * gameLevel) {
+                const elapsed = Date.now() - gameStartTime.current;
+                setGameTime(elapsed);
+                if (elapsed > 10000 * gameLevel) {
                     increaseSpeed();
-                    gameLevel++;
+                    gameLevel += 1;
                 }
+
+                console.log(riseSpeed);
             }
 
             const canvas = canvasRef.current;
             if (canvas) {
-                const context = canvas.getContext("2d");
-                if (context) {
-                    context.fillStyle = "#87CEEB";
-                    context.fillRect(0, 0, gameWidth, gameHeight);
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                    ctx.fillStyle = "#87CEEB";
+                    ctx.fillRect(0, 0, gameWidth, gameHeight);
 
-                    context.fillStyle = "black";
-                    platforms.forEach(platform => {
-                        context.fillRect(platform.x, platform.y, platform.width, 5);
+                    platforms.forEach((p) => drawPlatform(ctx, p));
+
+                    const now = Date.now();
+                    players.forEach((pl) => {
+                        const slowed = pl.spikeSlow && now < pl.spikeSlow;
+
+                        if (slowed) {
+                            ctx.fillStyle = "#FF6B6B";
+                            ctx.fillRect(pl.x - 2, pl.y - 2, 24, 24);
+                        }
+
+                        ctx.fillStyle = pl.color;
+                        ctx.fillRect(pl.x, pl.y, 20, 20);
+
+                        ctx.strokeStyle = slowed ? "#FF0000" : "black";
+                        ctx.lineWidth = slowed ? 2 : 1;
+                        ctx.strokeRect(pl.x, pl.y, 20, 20);
                     });
 
-                    players.forEach(player => {
-                        context.fillStyle = player.color;
-                        context.fillRect(player.x, player.y, 20, 20);
-                    });
-
-                    const timerText = formatTime(gameTime);
-                    context.font = "24px Arial";
-                    context.textAlign = "right";
-                    const textWidth = context.measureText(timerText).width;
-                    const padding = 10;
-
-                    context.fillStyle = "red";
-                    context.fillRect(gameWidth - textWidth - padding * 2 - 10, 10, textWidth + padding * 2, 34);
-
-                    context.fillStyle = "white";
-                    context.fillText(timerText, gameWidth - padding - 10, 35);
-
+                    const timeTxt = formatTime(gameTime);
+                    ctx.font = "24px Arial";
+                    ctx.textAlign = "right";
+                    const w = ctx.measureText(timeTxt).width;
+                    const pad = 10;
+                    ctx.fillStyle = "red";
+                    ctx.fillRect(gameWidth - w - pad * 2 - 10, 10, w + pad * 2, 34);
+                    ctx.fillStyle = "white";
+                    ctx.fillText(timeTxt, gameWidth - pad - 10, 35);
 
                     if (gameOver) {
                         gameLevel = 1;
                         setSpeed(0);
+                        ctx.fillStyle = "rgba(0,0,0,0.7)";
+                        ctx.fillRect(0, 0, gameWidth, gameHeight);
 
-                        context.fillStyle = "rgba(0, 0, 0, 0.7)";
-                        context.fillRect(0, 0, gameWidth, gameHeight);
-
-                        context.fillStyle = "white";
-                        context.font = "48px Arial";
-                        context.textAlign = "center";
-                        context.fillText(getWinner(players), gameWidth / 2, gameHeight / 2);
-                        context.font = "24px Arial";
-                        context.fillText("Time Lasted: " + timerText, gameWidth / 2, gameHeight / 2 + 50);
-                        context.fillText("Press spacebar to play again", gameWidth / 2, gameHeight / 2 + 100);
+                        ctx.fillStyle = "white";
+                        ctx.font = "48px Arial";
+                        ctx.textAlign = "center";
+                        ctx.fillText(getWinner(players), gameWidth / 2, gameHeight / 2);
+                        ctx.font = "24px Arial";
+                        ctx.fillText(`Time Lasted: ${timeTxt}`, gameWidth / 2, gameHeight / 2 + 50);
+                        ctx.fillText("Press spacebar to play again", gameWidth / 2, gameHeight / 2 + 100);
                     }
                 }
             }
 
             if (!gameOver) {
                 const updatedPlayers = updatePlayer(players, keys.current, platforms);
-                const playersAlive = updatedPlayers.filter(player => player.y < gameHeight + 50);
+                const alive = updatedPlayers.filter((pl) => pl.y < gameHeight + 50);
 
-                if (playersAlive.length < updatedPlayers.length) {
+                if (alive.length < updatedPlayers.length) {
                     setGameOver(true);
                 } else {
                     setPlayers(updatedPlayers);
-                    const updatedPlatforms = movePlatforms(platforms);
-                    setPlatforms(updatedPlatforms);
+                    setPlatforms(movePlatforms(platforms));
                 }
             }
 
-            animationRef.current = requestAnimationFrame(gameLoop);
+            animationRef.current = requestAnimationFrame(loop);
         };
 
-        animationRef.current = requestAnimationFrame(gameLoop);
+        animationRef.current = requestAnimationFrame(loop);
 
         return () => {
-            if (animationRef.current) {
-                cancelAnimationFrame(animationRef.current);
-            }
+            if (animationRef.current) cancelAnimationFrame(animationRef.current);
         };
     }, [players, platforms, gameOver, gameStarted, showStartMenu, gameTime]);
 
     return (
         <div
             className="absolute bg-black border-2 border-gray-400 flex flex-col items-center justify-center"
-            style={{ width: '800px', height: '600px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+            style={{ width: `${ gameWidth }px`, height: `${ gameHeight }px`, left: "50%", top: "50%",
+                transform: "translate(-50%, -50%)",
+            }}
         >
-            { showStartMenu && (
-                <StartMenu onGameStart={ handleGameStart } />
-            ) }
-            <canvas
-                ref={ canvasRef }
-                width={ gameWidth }
-                height={ gameHeight }
-                className="border-2 border-gray-400 bg-sky-200"
+            {showStartMenu && <StartMenu onGameStart={handleGameStart} />}
+
+            <canvas ref={ canvasRef } width={ gameWidth } height={ gameHeight } className="border-2 border-gray-400 bg-sky-200"
             />
         </div>
     );
